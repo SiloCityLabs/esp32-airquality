@@ -7,7 +7,6 @@ The Air Quality Monitor Kit is designed to provide real-time data on air quality
 - Measures PM1.0, PM2.5, and PM10.
 - Includes WS2812B LED on GPIO20.
 - Serial communication via UART.
-- 
 
 ### Quick Start Guide:
 
@@ -19,7 +18,7 @@ The Air Quality Monitor Kit is designed to provide real-time data on air quality
  - D7 (GPIO20): WS2812B-2020
 
  - [Tasmota Instructions](tasmota.md)
- - [ESPHome Configuration File](esphome.md)
+ - [ESPHome Configuration File](esphome.yml)
 
 ### Configuration:
 This kit supports multiple Xiao modules but comes standard with the ESP32-C3 for optimal performance. For further customization and expansion, additional breakout pins are provided.
