@@ -1,0 +1,256 @@
+esphome:
+  name: living-room-air
+  friendly_name: Living Room Air
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: ""
+
+ota:
+  - platform: esphome
+    password: ""
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Living-Room-Air Fallback Hotspot"
+    password: ""
+
+captive_portal:
+
+
+esp32_ble_tracker:
+  scan_parameters:
+    interval: 1100ms
+    window: 1100ms
+    active: true
+
+bluetooth_proxy:
+  active: true
+
+light:
+  - platform: neopixelbus
+    type: GRB
+    variant: WS2812X
+    pin: GPIO20
+    num_leds: 1
+    name: "Health LED"
+    id: healthled
+
+interval:
+  - interval: 180s
+    # Two-minute interval to extend the life span of the PMS7003 sensor
+    then:
+      - switch.turn_on: pms_switch
+      - delay: 45s
+      - switch.turn_off: pms_switch
+
+# PlantCare A1 Config
+# D0 (GPIO2): Set as Relay2 for RST.
+# D1 (GPIO3): Set as PMS5003 RX.
+# D2 (GPIO4): Set as PMS5003 TX.
+# D4 (GPIO6): Set as Relay1 for SET.
+# D7 (GPIO20): WS2812B-2020
+
+switch:
+  - platform: template
+    name: "PMS7003"
+    internal: true
+    id: pms_switch
+    optimistic: true
+    turn_on_action:
+      - uart.write:
+          id: pms7003_uart
+          data: [0x42, 0x4D, 0xE4, 0x00, 0x01, 0x01, 0x74]
+    turn_off_action:
+      - uart.write:
+          id: pms7003_uart
+          data: [0x42, 0x4D, 0xE4, 0x00, 0x00, 0x01, 0x73]
+
+uart:
+  id: pms7003_uart
+  tx_pin: GPIO3
+  rx_pin: GPIO4
+  baud_rate: 9600
+
+sensor:
+  - platform: pmsx003
+    type: PMSX003
+    uart_id: pms7003_uart
+    pm_1_0:
+      name: "PM <1.0µm"
+      id: pm1
+      filters:
+        - sliding_window_moving_average:
+            window_size: 30
+            send_every: 30
+    pm_2_5:
+      name: "PM <2.5µm"
+      id: pm2_5
+      filters:
+        - sliding_window_moving_average:
+            window_size: 30
+            send_every: 30
+    pm_10_0:
+      name: "PM <10.0µm"
+      id: pm10
+      filters:
+        - sliding_window_moving_average:
+            window_size: 30
+            send_every: 30
+
+    # The WHO guidelines work with 24-hour averages of the PM2.5 and PM10 sensors
+  - platform: template
+    name: "PM <2.5µm 24h average"
+    id: pm2_5_avg_24h
+    icon: mdi:chemical-weapon
+    unit_of_measurement: µg/m³
+    lambda: |-
+      return id(pm2_5).state;
+    update_interval: 60s
+    filters:
+      - sliding_window_moving_average:
+          window_size: 1440  # = 24 hours x 60 minutes
+          send_every: 1
+    on_value:
+      then:
+        - script.execute: update_aqi
+  - platform: template
+    name: "PM <10.0µm 24h average"
+    id: pm10_avg_24h
+    icon: mdi:chemical-weapon
+    unit_of_measurement: µg/m³
+    lambda: |-
+      return id(pm10).state;
+    update_interval: 60s
+    filters:
+      - sliding_window_moving_average:
+          window_size: 1440  # = 24 hours x 60 minutes
+          send_every: 1
+    on_value:
+      then:
+        - script.execute: update_aqi
+
+  
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+    
+  - platform: uptime # Uptime in Seconds
+    name: Uptime Sensor
+    id: uptime_sensor
+    update_interval: 60s
+    internal: True
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? String(days) + "d " : "") +
+                (hours ? String(hours) + "h " : "") +
+                (minutes ? String(minutes) + "m " : "") +
+                (String(seconds) + "s")
+              ).c_str();
+
+
+              
+# A textual presentation of the AQI
+text_sensor:
+  - platform: template
+    name: "Air Quality Index"
+    id: aqi
+    icon: mdi:air-filter
+  - platform: template  # Human Readable Uptime
+    name: Uptime
+    id: uptime_human
+    icon: mdi:clock-start
+
+# This script is called on every update of the relevant sensor values.
+script:
+  - id: update_aqi
+    mode: restart
+    then:
+      # Bad if at least one of the sensor values is bad
+      - if:
+          condition:
+            or:
+              - sensor.in_range:
+                  id: pm2_5_avg_24h
+                  above: 25
+              - sensor.in_range:
+                  id: pm10_avg_24h
+                  above: 50
+              - sensor.in_range:
+                  id: pm2_5
+                  above: 500
+              - sensor.in_range:
+                  id: pm10
+                  above: 1000
+          then:
+            - text_sensor.template.publish:
+                id: aqi
+                state: Bad
+            - light.turn_on:
+                id: healthled
+                brightness: 100%
+                red: 100%
+                green: 0%
+                blue: 0%
+          else:
+            # Acceptable if at least one of the sensor values is acceptable
+            - if:
+                condition:
+                  or:
+                    - sensor.in_range:
+                        id: pm2_5_avg_24h
+                        above: 12
+                    - sensor.in_range:
+                        id: pm10_avg_24h
+                        above: 25
+                    - sensor.in_range:
+                        id: pm2_5
+                        above: 50
+                    - sensor.in_range:
+                        id: pm10
+                        above: 100
+                then:
+                  - text_sensor.template.publish:
+                      id: aqi
+                      state: Acceptable
+                  - light.turn_on:
+                      id: healthled
+                      brightness: 100%
+                      red: 100%
+                      green: 100%
+                      blue: 0%
+                else:
+                  # Otherwise good (all of the sensor values are good)
+                  - text_sensor.template.publish:
+                      id: aqi
+                      state: Good
+                  - light.turn_on:
+                      id: healthled
+                      brightness: 20%
+                      red: 0%
+                      green: 100%
+                      blue: 0%
