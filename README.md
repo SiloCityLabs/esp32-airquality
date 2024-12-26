@@ -11,11 +11,19 @@ The Air Quality Monitor Kit is designed to provide real-time data on air quality
 ### Quick Start Guide:
 
 #### Pinout:
- - D0 (GPIO2): Set as Relay2 for RST.
- - D1 (GPIO3): Set as PMS5003 RX.
- - D2 (GPIO4): Set as PMS5003 TX.
- - D4 (GPIO6): Set as Relay1 for SET.
- - D7 (GPIO20): WS2812B-2020
+
+|              | XIAO PIN | C3     | C6     | S3     |
+|--------------|----------|--------|--------|--------|
+| ESPHOME      | N/A      | ✅      |        | ✅      |
+| TASMOTA      | N/A      | ✅      | ✅      | ✅      |
+| PMS7003 RST. | D0       | GPIO2  | GPIO0  | GPIO1  |
+| PMS7003 RX.  | D1       | GPIO3  | GPIO1  | GPIO2  |
+| PMS7003 TX.  | D2       | GPIO4  | GPIO2  | GPIO3  |
+| PMS7003 SET  | D4       | GPIO6  | GPIO22 | GPIO43 |
+| WS2812B      | D7       | GPIO20 | GPIO17 | GPIO44 |
+|              |          |        |        |        |
+|              |          |        |        |        |
+|              |          |        |        |        |
 
  - [Tasmota Instructions](tasmota.md)
  - [ESPHome Configuration File](esphome.yml)
