@@ -23,7 +23,7 @@ The Air Quality Monitor Kit is designed to provide real-time data on air quality
 | WS2812B      | D7       | GPIO20 | GPIO17 | GPIO44 |
 
  - [Tasmota Instructions](tasmota.md)
- - [ESPHome Configuration File](esphome-v1.yml)
+ - [ESPHome Configuration File](esphome-v1.yaml)
 
 ### Configuration:
 This kit supports multiple Xiao modules but comes standard with the ESP32-C3 for optimal performance. For further customization and expansion, additional breakout pins are provided.
