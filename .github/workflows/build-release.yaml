@@ -1,0 +1,65 @@
+name: Build and Release ESPHome Firmware
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch: # Allows manual triggering for releases
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python and dependencies
+        run: make setup
+
+      - name: Build firmware
+        run: make build
+
+      - name: Create output directory and move firmware
+        run: mkdir -p firmwares && mv firmware.bin firmwares/
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-binaries
+          path: firmwares/
+          retention-days: 7  # Keeps artifacts for debugging/testing
+
+  release:
+    if: github.event_name == 'workflow_dispatch' # Only run manually
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download firmware artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-binaries
+          path: firmwares/
+
+      - name: Extract version from config.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep -oP '(?<=version: ")[0-9]+\.[0-9]+\.[0-9]+' config.yaml)
+          echo "Firmware version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Verify downloaded files
+        run: ls -lh firmwares/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: firmwares/*
+          tag_name: v${{ steps.get_version.outputs.version }}
+          release_name: Firmware v${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
