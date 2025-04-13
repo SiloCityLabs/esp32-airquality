@@ -98,6 +98,12 @@ switch:
           id: pms7003_uart
           data: [0x42, 0x4D, 0xE4, 0x00, 0x00, 0x01, 0x73]
 
+button:
+  - platform: restart
+    id: restart_button
+    icon: mdi:power-cycle
+    name: "ESP Reboot"
+
 uart:
   id: pms7003_uart
   tx_pin: GPIO3

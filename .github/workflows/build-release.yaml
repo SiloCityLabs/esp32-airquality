@@ -61,5 +61,5 @@ jobs:
           files: firmwares/*
           tag_name: v${{ steps.get_version.outputs.version }}
           release_name: Firmware v${{ steps.get_version.outputs.version }}
-          draft: false
+          draft: true
           prerelease: false
