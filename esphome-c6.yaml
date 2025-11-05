@@ -4,8 +4,8 @@
 
 # These substitutions allow the end user to override certain values
 substitutions:
-  name: "esp32-airquality"
-  friendly_name: "Air Quality Monitor"
+  name: "esp32-airquality-c6"
+  friendly_name: "Air Quality Monitor C6"
 
   # If you deactivate this it also deactivates the improv_serial option. See here for more info: https://esphome.io/components/improv_serial
   log_level: "INFO"    
@@ -18,11 +18,11 @@ esphome:
   # This will allow for (future) project identification,
   # configuration and updates.
   project:
-    name: silocitylabs.esp32-airquality
+    name: silocitylabs.esp32-airquality-c6
     version: "1.3.0"
 
 esp32:
-  board: seeed_xiao_esp32c3
+  board: seeed_xiao_esp32c6
   framework:
     type: esp-idf
 
@@ -62,7 +62,7 @@ light:
   - platform: esp32_rmt_led_strip
     id: healthled
     name: "Health LED"
-    pin: GPIO20
+    pin: GPIO16
     num_leds: 1
     rgb_order: GRB
     chipset: WS2812
@@ -108,8 +108,8 @@ button:
 
 uart:
   id: pms7003_uart
-  tx_pin: GPIO3
-  rx_pin: GPIO4
+  tx_pin: GPIO2
+  rx_pin: GPIO1
   baud_rate: 9600
 
 sensor:
@@ -176,29 +176,29 @@ sensor:
     name: "WiFi Signal"
     update_interval: 60s
     
-  - platform: uptime # Uptime in Seconds
-    name: Uptime Sensor
-    id: uptime_sensor
-    update_interval: 60s
-    internal: True
-    on_raw_value:
-      then:
-        - text_sensor.template.publish:
-            id: uptime_human
-            state: !lambda |-
-              int seconds = round(id(uptime_sensor).raw_state);
-              int days = seconds / (24 * 3600);
-              seconds = seconds % (24 * 3600);
-              int hours = seconds / 3600;
-              seconds = seconds % 3600;
-              int minutes = seconds /  60;
-              seconds = seconds % 60;
-              return (
-                (days ? String(days) + "d " : "") +
-                (hours ? String(hours) + "h " : "") +
-                (minutes ? String(minutes) + "m " : "") +
-                (String(seconds) + "s")
-              ).c_str();
+  # - platform: uptime # Uptime in Seconds
+  #   name: Uptime Sensor
+  #   id: uptime_sensor
+  #   update_interval: 60s
+  #   internal: True
+  #   on_raw_value:
+  #     then:
+  #       - text_sensor.template.publish:
+  #           id: uptime_human
+  #           state: !lambda |-
+  #             int seconds = round(id(uptime_sensor).raw_state);
+  #             int days = seconds / (24 * 3600);
+  #             seconds = seconds % (24 * 3600);
+  #             int hours = seconds / 3600;
+  #             seconds = seconds % 3600;
+  #             int minutes = seconds /  60;
+  #             seconds = seconds % 60;
+  #             return (
+  #               (days ? String(days) + "d " : "") +
+  #               (hours ? String(hours) + "h " : "") +
+  #               (minutes ? String(minutes) + "m " : "") +
+  #               (String(seconds) + "s")
+  #             ).c_str();
 
 
               
