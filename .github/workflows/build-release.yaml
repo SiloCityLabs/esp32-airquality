@@ -18,10 +18,10 @@ jobs:
         run: make setup
 
       - name: Build firmware
-        run: make build
+        run: make build-all
 
-      - name: Create output directory and move firmware
-        run: mkdir -p firmwares && mv firmware.bin firmwares/
+      - name: Create output directory and move firmwares
+        run: mkdir -p firmwares && mv firmware-v1.bin firmware-c6.bin firmwares/
 
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
@@ -44,10 +44,17 @@ jobs:
           name: firmware-binaries
           path: firmwares/
 
-      - name: Extract version from config.yaml
+      - name: Extract version from config files
         id: get_version
         run: |
-          VERSION=$(grep -oP '(?<=version: ")[0-9]+\.[0-9]+\.[0-9]+' esphome-v1.yaml)
+          VERSION_V1=$(grep -oP '(?<=version: ")[0-9]+\.[0-9]+\.[0-9]+' esphome-v1.yaml)
+          VERSION_C6=$(grep -oP '(?<=version: ")[0-9]+\.[0-9]+\.[0-9]+' esphome-c6.yaml)
+          # Use the higher version or v1 as default
+          VERSION=$VERSION_V1
+          if [ "$VERSION_C6" != "$VERSION_V1" ]; then
+            echo "Warning: Version mismatch - v1: $VERSION_V1, c6: $VERSION_C6"
+            echo "Using v1 version: $VERSION_V1"
+          fi
           echo "Firmware version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT

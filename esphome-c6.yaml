@@ -62,7 +62,7 @@ light:
   - platform: esp32_rmt_led_strip
     id: healthled
     name: "Health LED"
-    pin: GPIO16
+    pin: GPIO17
     num_leds: 1
     rgb_order: GRB
     chipset: WS2812
