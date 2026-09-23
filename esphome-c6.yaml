@@ -40,7 +40,7 @@ ota:
 
 # This should point to the public location of this yaml file.
 dashboard_import:
-  package_import_url: github://SiloCityLabs/esp32-airquality/esphome-v1.yaml@main
+  package_import_url: github://SiloCityLabs/esp32-airquality/esphome-c6.yaml@main
   import_full_config: true
 
 wifi:
