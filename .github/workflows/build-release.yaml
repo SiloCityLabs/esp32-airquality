@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python and dependencies
         run: make setup
@@ -24,7 +24,7 @@ jobs:
         run: mkdir -p firmwares && mv firmware-v1.bin firmware-c6.bin firmwares/
 
       - name: Upload firmware artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: firmware-binaries
           path: firmwares/
@@ -36,10 +36,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download firmware artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: firmware-binaries
           path: firmwares/
@@ -63,7 +63,7 @@ jobs:
         run: ls -lh firmwares/
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: firmwares/*
           tag_name: v${{ steps.get_version.outputs.version }}
