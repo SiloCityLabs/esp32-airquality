@@ -23,17 +23,13 @@ config: ## Generate the configuration
 
 build-c3: ## Build the v1 (ESP32-C3) firmware
 	source .venv/bin/activate && \
-	esphome compile esphome-v1.yaml
-	BUILD_DIR=$$(find .esphome/build/ -maxdepth 1 -type d | grep -v "^.esphome/build/$$" | head -n 1); \
-	echo "Detected build directory: $$BUILD_DIR"; \
-	cp $$BUILD_DIR/.pioenvs/*/firmware.factory.bin firmware-v1.bin
+	esphome compile esphome-v1.yaml && \
+	cp .esphome/build/esp32-airquality/build/firmware.factory.bin firmware-v1.bin
 
 build-c6: ## Build the c6 (ESP32-C6) firmware
 	source .venv/bin/activate && \
-	esphome compile esphome-c6.yaml
-	BUILD_DIR=$$(find .esphome/build/ -maxdepth 1 -type d | grep -v "^.esphome/build/$$" | head -n 1); \
-	echo "Detected build directory: $$BUILD_DIR"; \
-	cp $$BUILD_DIR/.pioenvs/*/firmware.factory.bin firmware-c6.bin
+	esphome compile esphome-c6.yaml && \
+	cp .esphome/build/esp32-airquality-c6/build/firmware.factory.bin firmware-c6.bin
 
 flash-c3: ## Flash the firmware to test device
 	source .venv/bin/activate && \
