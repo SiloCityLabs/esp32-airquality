@@ -1,0 +1,44 @@
+name: ESPHome Stable Compatibility
+
+on:
+  schedule:
+    # Weekly on Thursday at 11:00 UTC (6 AM EST / 7 AM EDT)
+    - cron: '0 11 * * 4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    name: ESPHome stable - ${{ matrix.firmware }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        firmware:
+          - esphome-v1.yaml
+          - esphome-c6.yaml
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull latest stable ESPHome
+        run: docker pull ghcr.io/esphome/esphome:stable
+
+      - name: Validate configuration
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/config" \
+            -w /config \
+            ghcr.io/esphome/esphome:stable \
+            config "${{ matrix.firmware }}"
+
+      - name: Compile firmware
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/config" \
+            -w /config \
+            ghcr.io/esphome/esphome:stable \
+            compile "${{ matrix.firmware }}"

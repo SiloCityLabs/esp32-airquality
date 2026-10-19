@@ -42,3 +42,13 @@ flash-c3: ## Flash the firmware to test device
 flash-c6: ## Flash the firmware to test device
 	source .venv/bin/activate && \
 	esphome upload esphome-c6.yaml --device /dev/ttyACM0
+
+build-all: ## Build all the firmwares
+	make build-c3
+	make build-c6
+
+stl: ## Generate the STL files
+	rm -rf case/enclosure-box.stl && \
+	rm -rf case/enclosure-lid.stl && \
+	openscad -o case/enclosure-box.stl -D "render=\"box\"" case/enclosure.scad && \
+	openscad -o case/enclosure-lid.stl -D "render=\"lid\"" case/enclosure.scad
